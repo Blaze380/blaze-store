@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
 import {  admin  } from "better-auth/plugins";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { prisma } from "@/db/prisma";
+import { prisma } from "@/lib/prisma";
 export const auth = betterAuth({
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     database: prismaAdapter(prisma, {

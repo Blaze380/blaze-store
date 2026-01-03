@@ -1,2 +1,9 @@
+ignoredBuiltDependencies:
+  - unrs-resolver
+
 onlyBuiltDependencies:
   - '@nestjs/core'
+  - '@prisma/engines'
+  - '@sentry-internal/node-cpu-profiler'
+  - bcrypt
+  - prisma

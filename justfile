@@ -43,8 +43,11 @@ api-init:
 init-env:
     export $(grep -v '^#' .env.dev | xargs)
 
+rm-env:
+    unset $(grep -v '^#' .env.dev | cut -d= -f1)
+
+
 compose-up:
-    @just init-env
     docker compose -f compose.dev.yml up -d
 compose-down:
     docker compose -f compose.dev.yml down
@@ -53,8 +56,6 @@ compose-logs:
 compose:
     docker compose -f compose.dev.yml ps
 compose-build:
-    @just init-env
     docker compose -f compose.dev.yml build
 compose-res:
-    @just init-env
     docker compose -f compose.dev.yml restart

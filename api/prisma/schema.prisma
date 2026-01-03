@@ -5,10 +5,196 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+moduleFormat = "cjs"
+  // importFileExtension = ""
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+model User {
+  id            String     @id @default(uuid())
+  name          String
+  email         String
+  emailVerified Boolean    @default(false)
+  image         String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  role          UserRole   @default(USUARIO)
+  banned        Boolean?   @default(false)
+  banReason     String?
+  banExpires    DateTime?
+  sessions      Session[]
+  accounts      Account[]
+  Cart          Cart?
+  Orders        Order[]
+  Wishlists     Wishlist[]
+
+  @@unique([email])
+  @@map("user")
+}
+
+enum UserRole {
+  ADMIN
+  USUARIO
+}
+
+model Session {
+  id             String   @id
+  expiresAt      DateTime
+  token          String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  ipAddress      String?
+  userAgent      String?
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  impersonatedBy String?
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id @default(uuid())
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id @default(uuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  Products Product[]
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  categoryId  String
+  Category    Category @relation(fields: [categoryId], references: [id])
+  price       Float
+  quantity    Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  CartItems CartItem[]
+
+  OrderItems OrderItem[]
+
+  WishlistItems WishlistItem[]
+}
+
+model Cart {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  CartItems CartItem[]
+}
+
+model CartItem {
+  id        String   @id @default(uuid())
+  cartId    String
+  Cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId String
+  Product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([cartId, productId])
+}
+
+model Order {
+  id        String      @id @default(uuid())
+  userId    String
+  User      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  total     Float
+  status    OrderStatus @default(PENDENTE)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  OrderItems OrderItem[]
+}
+
+enum OrderStatus {
+  PENDENTE
+  PROCESSANDO
+  CONCLUIDO
+  CANCELADO
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  Order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  Product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int      @default(1)
+  unitPrice Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([orderId, productId])
+}
+
+model Wishlist {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  WishlistItems WishlistItem[]
+}
+
+model WishlistItem {
+  id         String   @id @default(uuid())
+  wishlistId String
+  Wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+  productId  String
+  Product    Product  @relation(fields: [productId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([wishlistId, productId])
 }
