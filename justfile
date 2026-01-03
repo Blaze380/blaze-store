@@ -40,3 +40,21 @@ api-init:
     pnpm --dir api seed
     echo "API setup complete."
 
+init-env:
+    export $(grep -v '^#' .env.dev | xargs)
+
+compose-up:
+    @just init-env
+    docker compose -f compose.dev.yml up -d
+compose-down:
+    docker compose -f compose.dev.yml down
+compose-logs:
+    docker compose -f compose.dev.yml logs -f
+compose:
+    docker compose -f compose.dev.yml ps
+compose-build:
+    @just init-env
+    docker compose -f compose.dev.yml build
+compose-res:
+    @just init-env
+    docker compose -f compose.dev.yml restart
